@@ -39,7 +39,7 @@ Remove-Item .\blackbox.db
 
 1. Initializes the DB
 
-python -m blackbox init-db --db blackbox.db
+ python -m blackbox init-db --db blackbox.db
 
 2. Ingest PCAP files (You can go onto SQLite and review the ingested data)
 
