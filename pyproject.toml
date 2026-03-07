@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "network-blackbox"
+version = "0.1.0"
+description = "Network Black Box: offline PCAP -> SQLite -> detection -> reports"
+requires-python = ">=3.9"
+authors = [
+  {name = "Peter Lor"}
+]
+readme = "README.md"
+dependencies = [
+  "dpkt>=1.9.8",
+  "typer>=0.12",
+]
+
+[project.scripts]
+blackbox = "blackbox.cli:main"

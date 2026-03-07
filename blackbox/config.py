@@ -25,7 +25,7 @@ class Detect:
 # thresholds uses class Detect, so it gives all the rule number
 # everything my tool needs to know about ports, thresholds, and timeouts
 @dataclass
-class BBConfig:
+class BlackboxConfig:
     internal_subnets: List[str] = field(
         default_factory=lambda: ["192.168.0.0/16", "10.0.0.0/8"]
     )
@@ -35,5 +35,5 @@ class BBConfig:
     thresholds: Detect = field(default_factory=Detect)
 
 # how the rest of the code gets config
-def load_config() -> BBConfig:
-    return BBConfig()
+def load_config() -> BlackboxConfig:
+    return BlackboxConfig()
