@@ -41,7 +41,7 @@ Remove-Item .\blackbox.db
 
 python -m blackbox init-db --db blackbox.db
 
-2. Ingest PCAP files
+2. Ingest PCAP files (You can go onto SQLite and review the ingested data)
 
 - Single PCAP file
 python -m blackbox ingest --pcap .\pcap\smallFlows.pcap --db blackbox.db
@@ -49,4 +49,4 @@ python -m blackbox ingest --pcap .\pcap\smallFlows.pcap --db blackbox.db
 - Folder of PCAPS
 python -m blackbox ingest --pcap .\pcaps --db blackbox.db
 
-3. Detection rules on ingested data
+3. Detection rules on ingested data (WIP)
