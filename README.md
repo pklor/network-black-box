@@ -37,10 +37,10 @@ python -m blackbox --help
 
 1. Initializes the DB
 
-python -m blackbox init-db --db blackbox.db
+ python -m blackbox init-db --db blackbox.db
 
-2. Ingest PCAP files
+2. Ingest PCAP files (You can go onto SQLite and review the ingested data)
 
 python -m blackbox ingest --pcap .\pcaps\smallFlows.pcap --db blackbox.db
 
-3. Detection rules on ingested data
+3. Detection rules on ingested data (WIP)
