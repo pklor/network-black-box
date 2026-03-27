@@ -32,10 +32,8 @@ pip install . (for blackbox dir)
 0. Extra Info
 
 - Help
-python -m blackbox --help
 
-- Remove db
-Remove-Item .\blackbox.db
+python -m blackbox --help
 
 1. Initializes the DB
 
@@ -43,10 +41,6 @@ python -m blackbox init-db --db blackbox.db
 
 2. Ingest PCAP files
 
-- Single PCAP file
-python -m blackbox ingest --pcap .\pcap\smallFlows.pcap --db blackbox.db
-
-- Folder of PCAPS
-python -m blackbox ingest --pcap .\pcaps --db blackbox.db
+python -m blackbox ingest --pcap .\pcaps\smallFlows.pcap --db blackbox.db
 
 3. Detection rules on ingested data
