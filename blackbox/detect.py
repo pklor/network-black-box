@@ -94,3 +94,19 @@ def _rule_bruteforce(conn: sqlite3.Connection, config: BlackboxConfig) -> List[A
             )
         )
     return alerts
+
+def _rule_dns_spike(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Alert]:
+    t = config.thresholds
+    sql = """
+        SELECT src_ip,
+                MIN(ts) AS ts_start,
+                MAX(ts) AS ts_end,
+                COUNT(*) AS queries
+        FROM dns_events
+        GROUP BY src_ip
+        HAVING queries >= ?
+
+
+    """
+
+    cur = conn.execute(sql, ))
