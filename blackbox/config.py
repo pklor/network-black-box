@@ -16,7 +16,7 @@ class Detect:
     )
     bruteforce_attempts: int = 30
 
-    dns_spike: int = 200
+    dns_spike_queries: int = 200
 
 # internal_subnets creates a list of ranges as range to know what's inside the network
 # sus_ports are ports that are treated as sus ports just for being used

@@ -105,8 +105,98 @@ def _rule_dns_spike(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Al
         FROM dns_events
         GROUP BY src_ip
         HAVING queries >= ?
-
-
     """
 
-    cur = conn.execute(sql, ))
+    cur = conn.execute(sql, (t.dns_spike_queries,))
+    alerts: List[Alert] = []
+    for row in cur:
+        details = f"DNS spike: {row['queries']} queries from {row['src_ip']}"
+        alerts.append (
+            Alert (
+                ts_start=row["ts_start"],
+                ts_end=row["ts_end"],
+                rule_name="dns-query_spike",
+                severity="medium",
+                src_ip=row["src_ip"],
+                dst_ip=None,
+                details=details,
+            )
+        )
+    return alerts
+
+def _rules_suspicious_ports(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Alert]:
+    ports_tuple = tuple(sorted(config.sus_ports))
+    if not ports_tuple:
+        return []
+    ph = ",".join(["?"] * len(ports_tuple))
+    sql = f"""
+        SELECT src_ip, dst_ip, dst_port,
+                MIN(ts_start) AS ts_start,
+                MAX(ts_end) AS ts_end,
+                COUNT(*) AS flows_count
+        FROM flows
+        WHERE dst_port IN ({ph})
+        GROUP BY src_ip, dst_ip, dst_port
+    """
+
+    cur = conn.execute(sql, ports_tuple)
+    alerts: List[Alert] = []
+    for row in cur:
+        details = (
+            f"Suspicious port usage: {row['flows_count']} flows to port {row['dst_port']} "
+            f"from {row['src_ip']} to {row['dst_ip']}"
+        )
+        alerts.append(
+            Alert(
+                ts_start=row["ts_start"],
+                ts_end=["ts_end"],
+                rule_name="suspicous_port_usage",
+                severity="medium",
+                src_ip=row["src_ip"],
+                dst_ip=row["dst_ip"],
+                details=details,
+            )
+        )
+    return alerts
+
+def _rules_new_internals_host(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Alert]:
+    sql= """
+        SELECT src_ip, MIN(ts_start) AS ts_first_seen, MAX(ts_end) AS ts_last_seen
+        FROM flows
+        GROUP BY src_ip
+    """
+    cur = conn.execute(sql)
+    alerts: List[Alert] = []
+    for row in cur:
+        src_ip = row["src_ip"]
+        details = f"New host observed: {src_ip} first seen at {row['ts_first_seen']}"
+        alerts.append(
+            Alert(
+                ts_start=row["ts_first_seen"],
+                ts_end=row["ts_last_seen"],
+                rule_name="new_internal_host",
+                severity="low",
+                src_ip=src_ip,
+                dst_ip=None,
+                details=details,
+            )
+        )
+    return alerts
+
+def _store_alerts(conn: sqlite3.Connection, alerts: Iterable[Alert]) -> None:
+    for a in alerts:
+        conn.execute(
+            """
+            INSERT INTO alerts(ts_start, ts_end, rule_name, severity, src_ip, dst_ip, details)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                a.ts_start,
+                a.ts_end,
+                a.rule_name,
+                a.severity,
+                a.src_ip,
+                a.dst_ip,
+                a.details, 
+            ),
+        )
