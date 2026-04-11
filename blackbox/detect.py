@@ -200,3 +200,37 @@ def _store_alerts(conn: sqlite3.Connection, alerts: Iterable[Alert]) -> None:
                 a.details, 
             ),
         )
+def _correlate_incidents(conn: sqlite3.Connection) -> None:
+    sql= """
+        SELECT src_ip
+                MIN(ts_start) AS ts_start,
+                MAX(ts_end) AS ts_end,
+                COUNT(*) AS alert_count,
+                GROUP_CONCAT(id) AS alert_ids
+        FROM alerts
+        WHERE src_ip IS NOT NULL
+        GROUP BY src_ip
+    """
+
+    cur = conn.execute(sql)
+    for row in cur:
+        src_ip=row["src_ip"]
+        ts_start=row["ts_start"]
+        ts_end=row["ts_end"]
+        alert_ids=[int(x) for x in row["alert_ids"].split(",")]
+        summary=f"Incident for {src_ip}: {row['alert_count']} related alerts"
+        severity="high" if row["alert_count"] >= 3 else "med"
+
+        conn.execute(
+            """
+            INSERT INTO incidents(ts_start, ts_end, primary_src_ip, severity, summary)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (ts_start, ts_end, src_ip, severity, summary)
+        )
+        incident_id=conn.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+        for aid in alert_ids:
+            conn.execute(
+                "INSERT OR IGNORE INTO incident_alerts(incident_id, alert_id) VALUES(?, ?)",
+                (incident_id, aid)
+            )

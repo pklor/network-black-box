@@ -75,6 +75,20 @@ def cmd_detect(
     db_path, config = _common_options(db=db, config_path=config_path)
     run_detections(db_path, config, since_alert_id=since_alert_id)
 
+@app.command("report")
+def cmd_report(
+    out: Path=typer.Option(
+        ..., "--out", help="Output directory for reports and evidence"
+    ),
+    db: Path=typer.Option(
+        Path("blackbox.db"),
+        "--db",
+        help="Path to SQLite DB (default: blackbox.db)",
+    ),
+) -> None:
+    """ Generate reports and evidence bundles"""
+    db_path = _common_options(db=db)
+    
 def main() -> None:
     app(prog_name="blackbox")
 
