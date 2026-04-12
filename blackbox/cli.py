@@ -5,6 +5,7 @@ from .config import load_config
 from .db import init_db
 from .ingest import ingest_pcaps
 from .detect import run_detections
+from .report import generate_reports
 
 app = typer.Typer(help="Network Black Box")
 
@@ -79,7 +80,8 @@ def cmd_report(
     ),
 ) -> None:
     """ Generate reports and evidence bundles"""
-    db_path = _common_options(db=db)
+    db_path, config= _common_options(db=db)
+    generate_reports(db_path, out, config)
     
 def main() -> None:
     app(prog_name="blackbox")

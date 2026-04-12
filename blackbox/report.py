@@ -60,3 +60,5 @@ def _write_dataset_summary(conn, out_dir: Path) -> None:
         f.write(f"Total alerts: {alerts['c']}\n")
         f.write(f"Total incidents: {incidents['c']}\n\n")
 
+
+
