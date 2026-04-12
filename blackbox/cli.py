@@ -44,10 +44,6 @@ def cmd_ingest(
         "--db",
         help="Path to SQLite db "
     ), 
-    config_path: Path | None = typer.Option(
-        None,
-        "--config",
-    )
 ) -> None:
     """Ingesting into SQLite"""
 
@@ -65,10 +61,6 @@ def cmd_detect(
         Path("blakbox.db"),
         "--db",
         help="Path to SQLite db (default: blackbox.db)",
-    ),
-    config_path: Path | None = typer.Option(
-        None,
-        "--config",
     ),
 ) -> None:
     
