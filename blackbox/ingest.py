@@ -4,7 +4,6 @@ import hashlib
 import os
 import socket
 
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Tuple

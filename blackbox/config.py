@@ -30,7 +30,6 @@ class BlackboxConfig:
         default_factory=lambda: ["192.168.0.0/16", "10.0.0.0/8"]
     )
     sus_ports: Set[int] =field(default_factory=lambda: {23, 4444, 6667})
-    output_dir: Path = Path("output")
     flow_idle_timeout_sec: int = 60
     thresholds: Detect = field(default_factory=Detect)
 

@@ -1,6 +1,5 @@
 from pathlib import Path
 import typer
-from . import __version__
 from .config import load_config
 from .db import init_db
 from .ingest import ingest_pcaps
@@ -53,11 +52,6 @@ def cmd_ingest(
 
 @app.command("detect")
 def cmd_detect(
-    since_alert_id: int | None = typer.Option(
-        None,
-        "--since-alert-id",
-        help="Optional: only run correlation starting after this alert id",
-    ),
     db: Path = typer.Option(
         Path("blakbox.db"),
         "--db",

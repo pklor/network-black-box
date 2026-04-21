@@ -18,7 +18,7 @@ class Alert:
     details: str
 
 #opens db connection and runs detections
-def run_detections(db_path: Path, config: BlackboxConfig, since_alert_id: Optional[int] = None) -> None:
+def run_detections(db_path: Path, config: BlackboxConfig) -> None:
     conn = get_conn(db_path)
     try:
         alerts: List[Alert] = []

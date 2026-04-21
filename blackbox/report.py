@@ -1,7 +1,6 @@
 from __future__ import annotations
 import csv
 import json
-import os
 import zipfile
 from pathlib import Path
 from typing import Dict, List
