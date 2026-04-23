@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional
 from .config import BlackboxConfig
-from .db import get_conn
+from .db import _connect
 
 
 @dataclass
@@ -20,7 +20,7 @@ class Alert:
 
 #opens db connection and runs detections
 def run_detections(db_path: Path, config: BlackboxConfig) -> None:
-    conn = get_conn(db_path)
+    conn = _connect(db_path)
     try:
         alerts: List[Alert] = []
         alerts.extend(_rule_portscan(conn, config))
@@ -32,8 +32,8 @@ def _rule_portscan(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Ale
     p = config.thresholds
     sql = """
         SELECT src_ip, dst_ip,
-                MIN(ts_start) AS ts_start
-                MAX(ts_end) AS ts_end
+                MIN(ts_start) AS ts_start,
+                MAX(ts_end) AS ts_end,
                 COUNT(DISTINCT dst port) AS unique ports
         FROM flows
         GROUP BY src_ip, dst_ip
@@ -150,7 +150,7 @@ def _rules_suspicious_ports(conn: sqlite3.Connection, config: BlackboxConfig) ->
         alerts.append(
             Alert(
                 ts_start=row["ts_start"],
-                ts_end=["ts_end"],
+                ts_end=row["ts_end"],
                 rule_name="suspicous_port_usage",
                 severity="medium",
                 src_ip=row["src_ip"],
@@ -239,7 +239,7 @@ def _correlate_incidents(conn: sqlite3.Connection) -> None:
     conn.execute("DELETE FROM incident_alerts")
     conn.execute("DELETE FROM incidents")
     sql= """
-        SELECT src_ip
+        SELECT src_ip,
                 MIN(ts_start) AS ts_start,
                 MAX(ts_end) AS ts_end,
                 COUNT(*) AS alert_count,
@@ -256,7 +256,7 @@ def _correlate_incidents(conn: sqlite3.Connection) -> None:
         ts_end=row["ts_end"]
         alert_ids=[int(x) for x in row["alert_ids"].split(",")]
         summary=f"Incident for {src_ip}: {row['alert_count']} related alerts"
-        severity="high" if row["alert_count"] >= 3 else "med"
+        severity="high" if row["alert_count"] >= 3 else "medium"
 
         conn.execute(
             """

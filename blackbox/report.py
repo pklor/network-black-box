@@ -4,7 +4,7 @@ import json
 import zipfile
 from pathlib import Path
 from typing import Dict, List
-from .db import get_conn   
+from .db import _connect  
 
 def _write_dataset_summary(conn, out_dir: Path) -> None:
     pcaps=conn.execute("SELECT COUNT(*) AS c, MIN(ts_start) as min_ts, MAX(ts_end) AS max_ts FROM pcaps").fetchone()
@@ -49,7 +49,7 @@ def _write_dataset_summary(conn, out_dir: Path) -> None:
     ).fetchall()
 
     summary_path =out_dir / "summary.txt"
-    with summary_path.open("W", encoding="utf-8") as f:
+    with summary_path.open("w", encoding="utf-8") as f:
         f.write("=== Network Black Box Data Summary ===\n\n")
         f.write(f"PCAP files ingested: {pcaps['c']}\n")
         f.write(f"Time range: {pcaps['min_ts']} to {pcaps['max_ts']}\n")
@@ -89,7 +89,7 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
             WHERE ia.incident_id = ?
             ORDER BY a.ts_start
             """,
-            (inc_id),
+            (inc_id,),
         ).fetchall()
 
         ts_start=inc["ts_start"]
@@ -112,7 +112,7 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
         ).fetchall()
 
         report_path=incident_dir / "report.txt"
-        with report_path.open("W", encoding="utf-8") as f:
+        with report_path.open("w", encoding="utf-8") as f:
             f.write(f"Incident {inc_id}\n")
             f.write("="*40+"\n")
             f.write(f"Time Window: {ts_start}-{ts_end}\n")
@@ -135,7 +135,7 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
             f.write(" - Consider blocking or further monitoring.\n")
 
         flows_csv = incident_dir / "flows.csv"
-        with flows_csv.open("W", newline="", encoding="utf-8") as f:
+        with flows_csv.open("w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -172,7 +172,7 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
                 )
 
         dns_csv=incident_dir/"dns.csv"
-        with dns_csv.open("W", newline="", encoding="utf-8") as f:
+        with dns_csv.open("w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -203,15 +203,15 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
                 )
         
         alert_json_path = incident_dir / "alerts.json"
-        with alert_json_path.open("W", encoding="utf-8") as f:
+        with alert_json_path.open("w", encoding="utf-8") as f:
             json.dump(
                 [
                     {
-                        "id:": a["id"],
+                        "id": a["id"],
                         "ts_start": a["ts_start"],
                         "ts_end": a["ts_end"],
                         "rule_name": a["rule_name"],
-                        "severity": a["serverity"],
+                        "severity": a["severity"],
                         "src_ip": a["src_ip"],
                         "dst_ip": a["dst_ip"],
                         "details": a["details"],
@@ -222,6 +222,6 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
                 indent=2,
             )
         zip_path=out_dir/f"{base_name}.zip"
-        with zipfile.ZipFile(zip_path, "W", compression=zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for child in incident_dir.iterdir():
                 zf.write(child, arcname=child.name)

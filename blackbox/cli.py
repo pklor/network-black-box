@@ -53,7 +53,7 @@ def cmd_ingest(
 @app.command("detect")
 def cmd_detect(
     db: Path = typer.Option(
-        Path("blakbox.db"),
+        Path("blackbox.db"),
         "--db",
         help="Path to SQLite db (default: blackbox.db)",
     ),
@@ -83,6 +83,11 @@ def cmd_run(
     out: Path=typer.Option(
         ..., "--out", help="Output directory for reports and evidence"
     ),
+    db: Path = typer.Option(
+        Path("blackbox.db"),
+        "--db",
+        help="Path to SQLite db (default: blackbox.db)"
+    )
 ) -> None:
     """Convenience: ingest -> detect -> report in one shot."""
 

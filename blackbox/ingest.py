@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 import dpkt
 from .config import BlackboxConfig
-from .db import get_conn
+from .db import _connect
 
 ## store info about network flow
 @dataclass
@@ -56,7 +56,7 @@ def ingest_pcaps(db_path: Path, pcap_path: Path, config: BlackboxConfig) -> None
     files.sort()
 
     # connects to db 
-    conn = get_conn(db_path)
+    conn = _connect(db_path)
 
     # call ingest single pcap and saves to db
     try:
