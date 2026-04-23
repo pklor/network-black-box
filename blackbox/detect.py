@@ -236,7 +236,8 @@ def _store_alerts(conn: sqlite3.Connection, alerts: Iterable[Alert]) -> None:
             ),
         )
 def _correlate_incidents(conn: sqlite3.Connection) -> None:
-    
+    conn.execute("DELETE FROM incident_alerts")
+    conn.execute("DELETE FROM incidents")
     sql= """
         SELECT src_ip
                 MIN(ts_start) AS ts_start,
