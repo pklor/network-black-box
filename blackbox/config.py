@@ -10,6 +10,7 @@ from typing import List, Set
 @dataclass
 class Detect:
     portscan_ports: int = 20
+    portscan_window_sec: int = 60
 
     bruteforce_ports: Set[int] = field(
         default_factory=lambda: {21, 22, 23, 3389}

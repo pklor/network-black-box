@@ -4,7 +4,16 @@ import json
 import zipfile
 from pathlib import Path
 from typing import Dict, List
-from .db import _connect  
+from .db import _connect
+
+def generate_reports(db_path: Path, out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    conn = _connect(db_path)
+    try:
+        _write_dataset_summary(conn, out_dir)
+        _write_incident_reports_and_evidence(conn, out_dir)
+    finally:
+        conn.close()
 
 def _write_dataset_summary(conn, out_dir: Path) -> None:
     pcaps=conn.execute("SELECT COUNT(*) AS c, MIN(ts_start) as min_ts, MAX(ts_end) AS max_ts FROM pcaps").fetchone()
@@ -101,6 +110,7 @@ def _write_incident_reports_and_evidence(conn, out_dir: Path) -> None:
             SELECT * FROM flows
             WHERE ts_start >= ? AND ts_end <= ? AND src_ip = ?
             """,
+            (ts_start, ts_end, src_ip)
         ).fetchall()
 
         dns=conn.execute(

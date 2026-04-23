@@ -25,12 +25,12 @@ def run_detections(db_path: Path, config: BlackboxConfig) -> None:
         alerts: List[Alert] = []
         alerts.extend(_rule_portscan(conn, config))
         alerts.extend(_rule_bruteforce(conn, config))
-        alerts.extend(_rule_bruteforce(conn, config))
         alerts.extend(_rule_dns_spike(conn, config))
         alerts.extend(_rules_suspicious_ports(conn, config))
         alerts.extend(_rules_new_internals_host(conn, config))
         _store_alerts(conn, alerts)
         _correlate_incidents(conn)
+        conn.commit()
     finally:
         conn.close()
 
@@ -40,13 +40,14 @@ def _rule_portscan(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Ale
         SELECT src_ip, dst_ip,
                 MIN(ts_start) AS ts_start,
                 MAX(ts_end) AS ts_end,
-                COUNT(DISTINCT dst port) AS unique ports
+                COUNT(DISTINCT dst_port) AS unique_ports
         FROM flows
-        GROUP BY src_ip, dst_ip
+        GROUP BY src_ip, dst_ip,
+                        CAST(ts_start / ? AS INTEGER) -- time bucket
         HAVING unique_ports >= ?
     """
 
-    cur = conn.execute(sql, (p.portscan_ports,))
+    cur = conn.execute(sql, (p.portscan_window_sec, p.portscan_ports))
     alerts: List[Alert] = []
     for row in cur:
         details = (
