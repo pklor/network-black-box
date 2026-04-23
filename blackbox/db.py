@@ -122,7 +122,3 @@ def init_db(db_path: Path, config: BlackboxConfig) -> None:
 def _set_metadata(conn: sqlite3.Connection, key: str, value: str) -> None:
     conn.execute("INSERT INTO metadata(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value),
     )
-
-# helper to open a connection with row_factory set
-def get_conn(db_path: Path) -> sqlite3.Connection:
-    return _connect(db_path)
