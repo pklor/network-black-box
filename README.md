@@ -1,7 +1,7 @@
 # Network Black Box
  
-Network Black Box is a small offline network tool 
-It takes one or more PCAP files, summarizes the traffic into a SQLite database, runs a few simple detection rules, and then generates reports and evidence bundles.
+Network Black Box is a small network tool 
+It takes one or more PCAP files, summarizes the traffic into a SQLite database, runs 5  detection rules, and then generates reports and evidence bundles.
  
 It is a very lightweight version of tools like Zeek / Suricata / NetworkMiner, but implemented in Python with a CLI.
 
@@ -43,4 +43,16 @@ python -m blackbox --help
 
 python -m blackbox ingest --pcap .\pcaps\smallFlows.pcap --db blackbox.db
 
-3. Detection rules on ingested data (WIP)
+3. Detection rules on ingested data
+
+python -m blackbox detect --db blackbox.db
+
+4. Generate summaries
+
+python -m blackbox report --db blackbox.db --out .\output
+
+5. Quick and easy instead of doing the steps above
+
+ 1. python -m blackbox init-db --db blackbox.db
+
+ 2. python -m blackboc run --pcap .\pcap\ --out .\output --db blackbox.db
