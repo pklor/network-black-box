@@ -25,6 +25,12 @@ def run_detections(db_path: Path, config: BlackboxConfig) -> None:
         alerts: List[Alert] = []
         alerts.extend(_rule_portscan(conn, config))
         alerts.extend(_rule_bruteforce(conn, config))
+        alerts.extend(_rule_bruteforce(conn, config))
+        alerts.extend(_rule_dns_spike(conn, config))
+        alerts.extend(_rules_suspicious_ports(conn, config))
+        alerts.extend(_rules_new_internals_host(conn, config))
+        _store_alerts(conn, alerts)
+        _correlate_incidents(conn)
     finally:
         conn.close()
 

@@ -44,8 +44,8 @@ def _write_dataset_summary(conn, out_dir: Path) -> None:
         """
     ).fetchall()
 
-    alerts_by_type=conn.execute(
-        "SELECT rule_name, COUNT() AS c FROM alerts GROUP BY rule_name"
+    alerts_by_type = conn.execute(
+        "SELECT rule_name, COUNT(*) AS c FROM alerts GROUP BY rule_name"
     ).fetchall()
 
     summary_path =out_dir / "summary.txt"
