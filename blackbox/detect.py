@@ -1,4 +1,5 @@
 from __future__ import annotations
+import ipaddress
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -160,6 +161,24 @@ def _rules_suspicious_ports(conn: sqlite3.Connection, config: BlackboxConfig) ->
     return alerts
 
 def _rules_new_internals_host(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Alert]:
+    networks =[]
+    for subnet in config.internal_subnets:
+        try:
+            networks.append(ipaddress.ip_network(subnet, strict=False))
+        except ValueError:
+            continue
+    def _is_internal(ip_str: str) -> bool:
+        try:
+            ip=ipaddress.ip_address(ip_str)
+        except ValueError:
+            return False
+        return any(ip in n for n in networks)
+    
+    seen_rows=conn.execute(
+        "SELECT DISTINCT src_ip FROM alerts WHERE rule_name = 'new_internal_host'"
+    ).fetchall()
+    already_alerted={r["src_ip"] for r in seen_rows if r["src_ip"] is not None}
+
     sql= """
         SELECT src_ip, MIN(ts_start) AS ts_first_seen, MAX(ts_end) AS ts_last_seen
         FROM flows
@@ -169,6 +188,10 @@ def _rules_new_internals_host(conn: sqlite3.Connection, config: BlackboxConfig) 
     alerts: List[Alert] = []
     for row in cur:
         src_ip = row["src_ip"]
+        if not _is_internal(src_ip):
+            continue
+        if src_ip in already_alerted:
+            continue
         details = f"New host observed: {src_ip} first seen at {row['ts_first_seen']}"
         alerts.append(
             Alert(
@@ -185,6 +208,18 @@ def _rules_new_internals_host(conn: sqlite3.Connection, config: BlackboxConfig) 
 
 def _store_alerts(conn: sqlite3.Connection, alerts: Iterable[Alert]) -> None:
     for a in alerts:
+        existing=conn.execute(
+            """
+            SELECT 1 FROM alerts
+            WHERE rule_name = ?
+              AND IFNULL(src_ip, '') = IFNULL(?, '')
+              AND IFNULL(dst_ip, '') = IFNULL(?, '')
+            LIMIT 1
+            """,
+            (a.rule_name, a.src_ip, a.dst_ip),
+        ).fetchone()
+        if existing is not None:
+            continue
         conn.execute(
             """
             INSERT INTO alerts(ts_start, ts_end, rule_name, severity, src_ip, dst_ip, details)
@@ -201,6 +236,7 @@ def _store_alerts(conn: sqlite3.Connection, alerts: Iterable[Alert]) -> None:
             ),
         )
 def _correlate_incidents(conn: sqlite3.Connection) -> None:
+    
     sql= """
         SELECT src_ip
                 MIN(ts_start) AS ts_start,

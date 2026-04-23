@@ -59,8 +59,8 @@ def cmd_detect(
     ),
 ) -> None:
     
-    db_path, config = _common_options(db=db, config_path=config_path)
-    run_detections(db_path, config, since_alert_id=since_alert_id)
+    db_path, config = _common_options(db=db)
+    run_detections(db_path, config)
 
 @app.command("report")
 def cmd_report(
@@ -74,8 +74,22 @@ def cmd_report(
     ),
 ) -> None:
     """ Generate reports and evidence bundles"""
-    db_path, config= _common_options(db=db)
-    generate_reports(db_path, out, config)
+    db_path, _ = _common_options(db=db)
+    generate_reports(db_path, out)
+
+@app.command("run")
+def cmd_run(
+    pcap: Path=typer.Option(..., "--pcap", help="PCAP file or directory"),
+    out: Path=typer.Option(
+        ..., "--out", help="Output directory for reports and evidence"
+    ),
+) -> None:
+    """Convenience: ingest -> detect -> report in one shot."""
+
+    db_path, config = _common_options(db=db)
+    ingest_pcaps(db_path, pcap, config)
+    run_detections(db_path, config)
+    generate_reports(db_path, out)
     
 def main() -> None:
     app(prog_name="blackbox")
