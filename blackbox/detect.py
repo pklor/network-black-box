@@ -111,11 +111,12 @@ def _rule_dns_spike(conn: sqlite3.Connection, config: BlackboxConfig) -> List[Al
                 MAX(ts) AS ts_end,
                 COUNT(*) AS queries
         FROM dns_events
-        GROUP BY src_ip
+        GROUP BY src_ip,
+                 CAST(ts / ? AS INTEGER)
         HAVING queries >= ?
     """
 
-    cur = conn.execute(sql, (t.dns_spike_queries,))
+    cur = conn.execute(sql, (t.dn_spike_window_sec, t.dns_spike_queries))
     alerts: List[Alert] = []
     for row in cur:
         details = f"DNS spike: {row['queries']} queries from {row['src_ip']}"
