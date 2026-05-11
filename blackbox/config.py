@@ -13,9 +13,10 @@ class Detect:
     portscan_window_sec: int = 60
 
     bruteforce_ports: Set[int] = field(
-        default_factory=lambda: {21, 22, 23, 3389}
+        default_factory=lambda: {21, 22, 23, 3389, 1080, 1337, 31337, 3128, 4444, 4445, 5800, 5900, 6667, 6668, 6669, 8080, 8443}
     )
     bruteforce_attempts: int = 30
+    bruteforce_window_sec: int=60
 
     dns_spike_queries: int = 200
     dn_spike_window_sec: int = 60

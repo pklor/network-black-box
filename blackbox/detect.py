@@ -80,10 +80,11 @@ def _rule_bruteforce(conn: sqlite3.Connection, config: BlackboxConfig) -> List[A
         FROM flows
         WHERE dst_port IN ({pholders})
         GROUP BY src_ip, dst_ip, dst_port
+                    CAST(ts_start / ? AS INTEGER)
         HAVING attempts >= ?
     """
 
-    cur = conn.execute(sql, (*ports_tuple, p.bruteforce_attempts))
+    cur = conn.execute(sql, (*ports_tuple, p.bruteforce_window_sec, p.bruteforce_attempts))
     alerts: List[Alert] = []
     for row in cur:
         details = (
