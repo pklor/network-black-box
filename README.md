@@ -137,7 +137,7 @@ blackbox/
   report.py       # report and evidence bundle generation
 ```
 
-## Challeneg faced
+## Challenge faced
 
 The most significant challenge was building the ingestion pipeline in ingest.py. Specifically the flow tracking system where you're taking individual raw packets and reassembling them into meaningful conversations in real time. 
 You're working at the lowest level of network data, manually peeling back every protocol layer yourself, Ethernet to IP to TCP or UDP, and any packet can be corrupt or unexpected at any point. 
