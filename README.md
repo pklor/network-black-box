@@ -136,3 +136,15 @@ blackbox/
   detect.py       # detection rules, alert storage, incident correlation
   report.py       # report and evidence bundle generation
 ```
+
+## Challeneg faced
+
+The most significant challenge was building the ingestion pipeline in ingest.py. Specifically the flow tracking system where you're taking individual raw packets and reassembling them into meaningful conversations in real time. 
+You're working at the lowest level of network data, manually peeling back every protocol layer yourself, Ethernet to IP to TCP or UDP, and any packet can be corrupt or unexpected at any point. 
+On top of that you have to manage memory by evicting idle flows, handle both pcap and pcapng formats, and do a second DNS parsing pass on port 53 traffic, all inside a single packet loop. 
+It was a lot of moving pieces that all had to work together correctly before a single row could be written to the database.
+
+The way I approached it was by breaking it into smaller pieces instead of trying to solve everything at once. Each responsibility got its own function. 
+The flush handles memory management, the insert handles database writing, the DNS handler handles DNS parsing, and the main packet loop just coordinates all of them. 
+This way each piece could be written and understood independently before being combined. 
+When bugs came up, and there were many, having isolated functions made it much easier to pinpoint exactly where the problem was rather than debugging one giant block of code.
